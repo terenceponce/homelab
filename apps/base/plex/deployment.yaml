@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: plex
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      containers:
+        - name: plex
+          image: plexinc/pms-docker:latest
+          env:
+            - name: TZ
+              value: "Asia/Manila"
+            - name: PLEX_CLAIM
+              value: "claim-PLACEHOLDER"
+          ports:
+            - containerPort: 32400
+              name: plex
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: transcode
+              mountPath: /transcode
+            - name: media
+              mountPath: /media
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "500m"
+            limits:
+              memory: "4Gi"
+              cpu: "2000m"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: plex-config
+        - name: transcode
+          persistentVolumeClaim:
+            claimName: plex-transcode
+        - name: media
+          hostPath:
+            path: /mnt/storage/media
+            type: Directory
