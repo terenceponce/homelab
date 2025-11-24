@@ -21,8 +21,6 @@ spec:
           env:
             - name: TZ
               value: "Asia/Manila"
-            - name: PLEX_CLAIM
-              value: "claim-PLACEHOLDER"
           ports:
             - containerPort: 32400
               name: plex
