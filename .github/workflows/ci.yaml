@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-kustomize:
+    name: Validate Kustomize
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Kustomize
+        uses: fluxcd/pkg/actions/kustomize@main
+
+      - name: Setup kubeconform
+        uses: fluxcd/pkg/actions/kubeconform@main
+
+      - name: Validate apps overlay
+        run: |
+          echo "==> Building apps/overlays/production"
+          kustomize build apps/overlays/production > /tmp/apps.yaml
+
+          echo "==> Validating with kubeconform"
+          kubeconform -strict -summary -output text \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            /tmp/apps.yaml
+
+      - name: Validate infrastructure overlay
+        run: |
+          echo "==> Building infrastructure/overlays/production"
+          kustomize build infrastructure/overlays/production > /tmp/infrastructure.yaml
+
+          echo "==> Validating with kubeconform"
+          kubeconform -strict -summary -output text \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            /tmp/infrastructure.yaml
+
+      - name: Validate cluster manifests
+        run: |
+          echo "==> Building clusters/production/flux-system"
+          kustomize build clusters/production/flux-system > /tmp/flux-system.yaml
+
+          echo "==> Validating with kubeconform (skipping Flux CRDs)"
+          kubeconform -strict -summary -output text \
+            -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            -skip CustomResourceDefinition \
+            /tmp/flux-system.yaml
+
+  kube-linter:
+    name: Kube Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Kustomize
+        uses: fluxcd/pkg/actions/kustomize@main
+
+      - name: Build manifests
+        run: |
+          mkdir -p /tmp/manifests
+          kustomize build apps/overlays/production > /tmp/manifests/apps.yaml
+          kustomize build infrastructure/overlays/production > /tmp/manifests/infrastructure.yaml
+
+      - name: Run kube-linter
+        uses: stackrox/kube-linter-action@v1
+        with:
+          directory: /tmp/manifests
+
+  pluto:
+    name: Detect Deprecated APIs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Kustomize
+        uses: fluxcd/pkg/actions/kustomize@main
+
+      - name: Setup Pluto
+        uses: FairwindsOps/pluto/github-action@master
+
+      - name: Detect deprecated APIs in apps
+        run: |
+          kustomize build apps/overlays/production | pluto detect -
+
+      - name: Detect deprecated APIs in infrastructure
+        run: |
+          kustomize build infrastructure/overlays/production | pluto detect -
+
+      - name: Detect deprecated APIs in cluster
+        run: |
+          kustomize build clusters/production/flux-system | pluto detect -
