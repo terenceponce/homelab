@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: plex
   namespace: plex
+  annotations:
+    ignore-check.kube-linter.io/run-as-non-root: "Plex image requires root to start"
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Plex requires write access to filesystem"
 spec:
   replicas: 1
   strategy:
@@ -17,7 +20,7 @@ spec:
     spec:
       containers:
         - name: plex
-          image: plexinc/pms-docker:latest
+          image: plexinc/pms-docker:1.42.2.10156-f737b826c
           env:
             - name: TZ
               value: "Asia/Manila"
