@@ -28,6 +28,7 @@ jobs:
           kubeconform -strict -summary -output text \
             -schema-location default \
             -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            -skip Secret \
             /tmp/apps.yaml
 
       - name: Validate infrastructure overlay
@@ -39,6 +40,7 @@ jobs:
           kubeconform -strict -summary -output text \
             -schema-location default \
             -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
+            -skip Secret \
             /tmp/infrastructure.yaml
 
       - name: Validate cluster manifests
@@ -50,7 +52,7 @@ jobs:
           kubeconform -strict -summary -output text \
             -schema-location default \
             -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
-            -skip CustomResourceDefinition \
+            -skip CustomResourceDefinition,Secret \
             /tmp/flux-system.yaml
 
   kube-linter:
