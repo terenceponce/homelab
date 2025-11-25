@@ -28,8 +28,141 @@ Pull requests are validated with:
 | Kube Linter | kube-linter | Security and best practices |
 | Detect Deprecated APIs | pluto | Finds deprecated Kubernetes APIs |
 
+## Setup
+
+### Prerequisites
+
+- A Kubernetes cluster (We used [K3s](https://k3s.io/))
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Flux CLI](https://fluxcd.io/flux/installation/)
+- [SOPS](https://github.com/getsops/sops)
+- [age](https://github.com/FiloSottile/age)
+
+### 1. Generate an age key pair
+
+```bash
+mkdir -p ~/.config/sops/age/homelab
+age-keygen -o ~/.config/sops/age/homelab/keys.txt
+chmod 600 ~/.config/sops/age/homelab/keys.txt
+```
+
+The output will look like:
+
+```
+# created: 2025-11-24T...
+# public key: age1j5lrkmy3aqk4ht2mxn74rk5arux52wnaxh5m6lhe3nwskhe3pptqyu8nzf
+AGE-SECRET-KEY-1XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+```
+
+**Back up this file to a password manager.** If you lose it, you cannot decrypt your secrets.
+
+### 2. Configure SOPS
+
+Update `.sops.yaml` with your public key:
+
+```yaml
+creation_rules:
+  - path_regex: .*secret.*\.yaml$
+    encrypted_regex: ^(data|stringData)$
+    age: <your-age-public-key>
+```
+
+This config:
+- Only encrypts files with "secret" in the filename
+- Only encrypts the `data` and `stringData` fields (metadata stays readable)
+
+Set the environment variable so SOPS can find your key:
+
+```bash
+export SOPS_AGE_KEY_FILE=~/.config/sops/age/homelab/keys.txt
+```
+
+Add this to your shell profile (`.bashrc`, `.zshrc`, etc.) to make it permanent.
+
+### 3. Bootstrap Flux
+
+```bash
+flux bootstrap github \
+  --owner=<github-username> \
+  --repository=homelab \
+  --path=clusters/production \
+  --personal
+```
+
+### 4. Create the SOPS secret in the cluster
+
+Flux needs the age private key to decrypt secrets:
+
+```bash
+cat ~/.config/sops/age/homelab/keys.txt | \
+kubectl create secret generic sops-age \
+  --namespace=flux-system \
+  --from-file=age.agekey=/dev/stdin
+```
+
+### 5. Working with secrets
+
+Encrypt a secret file:
+
+```bash
+sops --encrypt --in-place path/to/secret.yaml
+```
+
+Edit an encrypted secret (decrypts, opens editor, re-encrypts on save):
+
+```bash
+sops path/to/secret.yaml
+```
+
+View decrypted contents without editing:
+
+```bash
+sops -d path/to/secret.yaml
+```
+
+## New Machine Setup
+
+When setting up on a new machine:
+
+1. Retrieve age key from password manager
+2. Save to `~/.config/sops/age/homelab/keys.txt`
+3. Set permissions: `chmod 600 ~/.config/sops/age/homelab/keys.txt`
+4. Set environment variable: `export SOPS_AGE_KEY_FILE=~/.config/sops/age/homelab/keys.txt`
+5. Create sops-age secret in the cluster:
+   ```bash
+   cat ~/.config/sops/age/homelab/keys.txt | \
+   kubectl create secret generic sops-age \
+     --namespace=flux-system \
+     --from-file=age.agekey=/dev/stdin
+   ```
+
+## Troubleshooting
+
+### "Failed to get the data key required to decrypt"
+
+Flux can't find the decryption key:
+
+```bash
+kubectl get secret sops-age -n flux-system
+kubectl describe kustomization apps -n flux-system
+```
+
+Solution: Recreate the sops-age secret (see step 4).
+
+### "no key could be found to encrypt"
+
+SOPS can't find your age key:
+
+```bash
+echo $SOPS_AGE_KEY_FILE
+cat ~/.config/sops/age/homelab/keys.txt
+```
+
+Solution: Set the `SOPS_AGE_KEY_FILE` environment variable.
+
 ## Tools
 
 - [Flux](https://fluxcd.io/) - GitOps operator
 - [SOPS](https://github.com/getsops/sops) - Secrets encryption
+- [age](https://github.com/FiloSottile/age) - Encryption tool
 - [Kustomize](https://kustomize.io/) - Kubernetes configuration management
