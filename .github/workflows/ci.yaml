@@ -5,6 +5,13 @@ on:
     branches:
       - main
 
+env:
+  KUBECONFORM_ARGS: >-
+    -strict -summary -output text
+    -schema-location default
+    -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json'
+    -skip Secret
+
 jobs:
   validate-kustomize:
     name: Validate Kustomize
@@ -19,41 +26,23 @@ jobs:
       - name: Setup kubeconform
         uses: fluxcd/pkg/actions/kubeconform@main
 
-      - name: Validate apps overlay
-        run: |
-          echo "==> Building apps/overlays/production"
-          kustomize build apps/overlays/production > /tmp/apps.yaml
+      - name: Build apps overlay
+        run: kustomize build apps/overlays/production > /tmp/apps.yaml
 
-          echo "==> Validating with kubeconform"
-          kubeconform -strict -summary -output text \
-            -schema-location default \
-            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
-            -skip Secret \
-            /tmp/apps.yaml
+      - name: Validate apps overlay
+        run: kubeconform $KUBECONFORM_ARGS /tmp/apps.yaml
+
+      - name: Build infrastructure overlay
+        run: kustomize build infrastructure/overlays/production > /tmp/infrastructure.yaml
 
       - name: Validate infrastructure overlay
-        run: |
-          echo "==> Building infrastructure/overlays/production"
-          kustomize build infrastructure/overlays/production > /tmp/infrastructure.yaml
+        run: kubeconform $KUBECONFORM_ARGS /tmp/infrastructure.yaml
 
-          echo "==> Validating with kubeconform"
-          kubeconform -strict -summary -output text \
-            -schema-location default \
-            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
-            -skip Secret \
-            /tmp/infrastructure.yaml
+      - name: Build cluster manifests
+        run: kustomize build clusters/production/flux-system > /tmp/flux-system.yaml
 
       - name: Validate cluster manifests
-        run: |
-          echo "==> Building clusters/production/flux-system"
-          kustomize build clusters/production/flux-system > /tmp/flux-system.yaml
-
-          echo "==> Validating with kubeconform (skipping Flux CRDs)"
-          kubeconform -strict -summary -output text \
-            -schema-location default \
-            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
-            -skip CustomResourceDefinition,Secret \
-            /tmp/flux-system.yaml
+        run: kubeconform $KUBECONFORM_ARGS -skip CustomResourceDefinition /tmp/flux-system.yaml
 
   kube-linter:
     name: Kube Linter
@@ -65,11 +54,13 @@ jobs:
       - name: Setup Kustomize
         uses: fluxcd/pkg/actions/kustomize@main
 
-      - name: Build manifests
+      - name: Build apps overlay
         run: |
           mkdir -p /tmp/manifests
           kustomize build apps/overlays/production > /tmp/manifests/apps.yaml
-          kustomize build infrastructure/overlays/production > /tmp/manifests/infrastructure.yaml
+
+      - name: Build infrastructure overlay
+        run: kustomize build infrastructure/overlays/production > /tmp/manifests/infrastructure.yaml
 
       - name: Run kube-linter
         uses: stackrox/kube-linter-action@v1
@@ -89,14 +80,11 @@ jobs:
       - name: Setup Pluto
         uses: FairwindsOps/pluto/github-action@master
 
-      - name: Detect deprecated APIs in apps
-        run: |
-          kustomize build apps/overlays/production | pluto detect -
+      - name: Check apps overlay
+        run: kustomize build apps/overlays/production | pluto detect -
 
-      - name: Detect deprecated APIs in infrastructure
-        run: |
-          kustomize build infrastructure/overlays/production | pluto detect -
+      - name: Check infrastructure overlay
+        run: kustomize build infrastructure/overlays/production | pluto detect -
 
-      - name: Detect deprecated APIs in cluster
-        run: |
-          kustomize build clusters/production/flux-system | pluto detect -
+      - name: Check cluster manifests
+        run: kustomize build clusters/production/flux-system | pluto detect -
