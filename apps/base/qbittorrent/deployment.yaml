@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  namespace: qbittorrent
+  annotations:
+    ignore-check.kube-linter.io/run-as-non-root: "LinuxServer image requires root to start"
+    ignore-check.kube-linter.io/no-read-only-root-fs: "qBittorrent requires write access to filesystem"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+    spec:
+      containers:
+        - name: qbittorrent
+          image: linuxserver/qbittorrent:5.1.4
+          env:
+            - name: TZ
+              value: "Asia/Manila"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: WEBUI_PORT
+              value: "8080"
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 6881
+              name: bittorrent-tcp
+            - containerPort: 6881
+              protocol: UDP
+              name: bittorrent-udp
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: /downloads
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: qbittorrent-config
+        - name: downloads
+          hostPath:
+            path: /mnt/storage/downloads
+            type: DirectoryOrCreate
