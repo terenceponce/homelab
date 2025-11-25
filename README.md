@@ -138,6 +138,25 @@ When setting up on a new machine:
 
 ## Troubleshooting
 
+### K3s won't start after reboot
+
+Try these steps in order:
+
+1. **Simple restart**: `sudo systemctl restart k3s` (wait 60s)
+2. **Kill orphaned processes**: `sudo k3s-killall.sh && sudo systemctl start k3s`
+3. **Full reset** (last resort - loses cluster state):
+   ```bash
+   sudo systemctl stop k3s
+   sudo k3s-killall.sh
+   sudo rm -rf /var/lib/rancher/k3s/server/db/
+   sudo rm -rf /var/lib/rancher/k3s/agent/
+   sudo systemctl start k3s
+   ```
+
+After a full reset, re-bootstrap Flux (step 3) and recreate the sops-age secret (step 4).
+
+**Prevention:** Shut down K3s gracefully before powering off: `sudo systemctl stop k3s`
+
 ### "Failed to get the data key required to decrypt"
 
 Flux can't find the decryption key:
