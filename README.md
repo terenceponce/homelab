@@ -41,9 +41,9 @@ Pull requests are validated with:
 ### 1. Generate an age key pair
 
 ```bash
-mkdir -p ~/.config/sops/age/homelab
-age-keygen -o ~/.config/sops/age/homelab/keys.txt
-chmod 600 ~/.config/sops/age/homelab/keys.txt
+mkdir -p ~/.config/sops/age
+age-keygen -o ~/.config/sops/age/keys.txt
+chmod 600 ~/.config/sops/age/keys.txt
 ```
 
 The output will look like:
@@ -74,33 +74,42 @@ This config:
 Set the environment variable so SOPS can find your key:
 
 ```bash
-export SOPS_AGE_KEY_FILE=~/.config/sops/age/homelab/keys.txt
+export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
 ```
 
 Add this to your shell profile (`.bashrc`, `.zshrc`, etc.) to make it permanent.
 
-### 3. Bootstrap Flux
+### 3. Create a GitHub Personal Access Token
+
+Flux needs a GitHub token to access the repository:
+
+1. Go to https://github.com/settings/tokens
+2. Click "Generate new token (classic)"
+3. Select the `repo` scope (Full control of private repositories)
+4. Generate and copy the token
+
+### 4. Bootstrap Flux
 
 ```bash
-flux bootstrap github \
+GITHUB_TOKEN=<your-token> flux bootstrap github \
   --owner=<github-username> \
   --repository=homelab \
   --path=clusters/production \
   --personal
 ```
 
-### 4. Create the SOPS secret in the cluster
+### 5. Create the SOPS secret in the cluster
 
 Flux needs the age private key to decrypt secrets:
 
 ```bash
-cat ~/.config/sops/age/homelab/keys.txt | \
+cat ~/.config/sops/age/keys.txt | \
 kubectl create secret generic sops-age \
   --namespace=flux-system \
   --from-file=age.agekey=/dev/stdin
 ```
 
-### 5. Working with secrets
+### 6. Working with secrets
 
 Encrypt a secret file:
 
@@ -125,12 +134,12 @@ sops -d path/to/secret.yaml
 When setting up on a new machine:
 
 1. Retrieve age key from password manager
-2. Save to `~/.config/sops/age/homelab/keys.txt`
-3. Set permissions: `chmod 600 ~/.config/sops/age/homelab/keys.txt`
-4. Set environment variable: `export SOPS_AGE_KEY_FILE=~/.config/sops/age/homelab/keys.txt`
+2. Save to `~/.config/sops/age/keys.txt`
+3. Set permissions: `chmod 600 ~/.config/sops/age/keys.txt`
+4. Set environment variable: `export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt`
 5. Create sops-age secret in the cluster:
    ```bash
-   cat ~/.config/sops/age/homelab/keys.txt | \
+   cat ~/.config/sops/age/keys.txt | \
    kubectl create secret generic sops-age \
      --namespace=flux-system \
      --from-file=age.agekey=/dev/stdin
@@ -153,7 +162,7 @@ Try these steps in order:
    sudo systemctl start k3s
    ```
 
-After a full reset, re-bootstrap Flux (step 3) and recreate the sops-age secret (step 4).
+After a full reset, re-bootstrap Flux (step 4) and recreate the sops-age secret (step 5).
 
 **Prevention:** Shut down K3s gracefully before powering off: `sudo systemctl stop k3s`
 
@@ -174,7 +183,7 @@ SOPS can't find your age key:
 
 ```bash
 echo $SOPS_AGE_KEY_FILE
-cat ~/.config/sops/age/homelab/keys.txt
+cat ~/.config/sops/age/keys.txt
 ```
 
 Solution: Set the `SOPS_AGE_KEY_FILE` environment variable.
