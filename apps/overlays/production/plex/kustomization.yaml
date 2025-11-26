@@ -4,5 +4,6 @@ resources:
   - ../../../base/plex
   - plex-secret.yaml
 patches:
+  - path: patches/ingress.yaml
   - path: patches/resources.yaml
   - path: patches/use-secret.yaml
