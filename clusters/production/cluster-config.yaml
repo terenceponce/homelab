@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-config
+  namespace: flux-system
+data:
+  # Custom domain for remote access via Tailscale
+  # Change this to your own domain if you fork this repo
+  DOMAIN: dashfloat.com
