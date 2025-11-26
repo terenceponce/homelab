@@ -8,12 +8,15 @@ spec:
   selector:
     app: adguard
   ports:
-    - port: 80
+    # Web UI on port 3080 (port 80 conflicts with Traefik)
+    - port: 3080
       targetPort: 80
       name: http
+    # Setup wizard
     - port: 3000
       targetPort: 3000
       name: setup
+    # DNS on standard port 53 - requires disabling systemd-resolved stub listener
     - port: 53
       targetPort: 53
       protocol: TCP
