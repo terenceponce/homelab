@@ -193,6 +193,49 @@ cat ~/.config/sops/age/keys.txt
 
 Solution: Set the `SOPS_AGE_KEY_FILE` environment variable.
 
+## Backups
+
+App configs are backed up daily at 3am to `/mnt/storage/backups/`. Last 7 days are retained.
+
+### Check backup status
+
+```bash
+kubectl get cronjobs -A
+ls -la /mnt/storage/backups/sonarr/
+ls -la /mnt/storage/backups/qbittorrent/
+```
+
+### Manually trigger a backup
+
+```bash
+kubectl create job --from=cronjob/sonarr-backup sonarr-backup-manual -n sonarr
+```
+
+### Restore from backup
+
+After a fresh cluster setup:
+
+```bash
+# 1. Suspend Flux reconciliation
+flux suspend kustomization apps
+
+# 2. Scale down the app
+kubectl scale deployment sonarr -n sonarr --replicas=0
+
+# 3. Find PVC path
+PVC_NAME=$(kubectl get pvc sonarr-config -n sonarr -o jsonpath='{.spec.volumeName}')
+sudo ls /var/lib/rancher/k3s/storage/ | grep $PVC_NAME
+
+# 4. Extract backup
+sudo tar -xzf /mnt/storage/backups/sonarr/latest.tar.gz -C /var/lib/rancher/k3s/storage/<pvc-directory>/
+
+# 5. Scale up
+kubectl scale deployment sonarr -n sonarr --replicas=1
+
+# 6. Resume Flux reconciliation
+flux resume kustomization apps
+```
+
 ## Tools
 
 - [Flux](https://fluxcd.io/) - GitOps operator
