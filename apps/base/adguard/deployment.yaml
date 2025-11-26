@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard
+  namespace: adguard
+  annotations:
+    ignore-check.kube-linter.io/run-as-non-root: "AdGuard Home requires root for DNS binding"
+    ignore-check.kube-linter.io/no-read-only-root-fs: "AdGuard Home requires write access to filesystem"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: adguard
+  template:
+    metadata:
+      labels:
+        app: adguard
+    spec:
+      containers:
+        - name: adguard
+          image: adguard/adguardhome:v0.107.69
+          ports:
+            - containerPort: 3000
+              name: setup
+            - containerPort: 80
+              name: http
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+          volumeMounts:
+            - name: work
+              mountPath: /opt/adguardhome/work
+            - name: config
+              mountPath: /opt/adguardhome/conf
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: work
+          persistentVolumeClaim:
+            claimName: adguard-work
+        - name: config
+          persistentVolumeClaim:
+            claimName: adguard-config
