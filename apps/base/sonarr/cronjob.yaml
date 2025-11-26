@@ -13,9 +13,22 @@ spec:
       template:
         spec:
           restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
           containers:
             - name: backup
               image: busybox:1.37
+              securityContext:
+                readOnlyRootFilesystem: true
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
               command:
                 - /bin/sh
                 - -c
