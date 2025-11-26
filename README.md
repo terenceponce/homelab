@@ -216,18 +216,24 @@ kubectl create job --from=cronjob/sonarr-backup sonarr-backup-manual -n sonarr
 After a fresh cluster setup:
 
 ```bash
-# 1. Scale down the app
+# 1. Suspend Flux reconciliation
+flux suspend kustomization apps
+
+# 2. Scale down the app
 kubectl scale deployment sonarr -n sonarr --replicas=0
 
-# 2. Find PVC path
+# 3. Find PVC path
 PVC_NAME=$(kubectl get pvc sonarr-config -n sonarr -o jsonpath='{.spec.volumeName}')
 sudo ls /var/lib/rancher/k3s/storage/ | grep $PVC_NAME
 
-# 3. Extract backup
+# 4. Extract backup
 sudo tar -xzf /mnt/storage/backups/sonarr/latest.tar.gz -C /var/lib/rancher/k3s/storage/<pvc-directory>/
 
-# 4. Scale up
+# 5. Scale up
 kubectl scale deployment sonarr -n sonarr --replicas=1
+
+# 6. Resume Flux reconciliation
+flux resume kustomization apps
 ```
 
 ## Tools
