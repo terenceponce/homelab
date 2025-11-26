@@ -164,7 +164,12 @@ Try these steps in order:
 
 After a full reset, re-bootstrap Flux (step 4) and recreate the sops-age secret (step 5).
 
-**Prevention:** Shut down K3s gracefully before powering off: `sudo systemctl stop k3s`
+**Recommended shutdown procedure:**
+```bash
+sudo systemctl stop k3s
+sudo k3s-killall.sh
+```
+This cleans up stale network state and prevents startup issues.
 
 ### "Failed to get the data key required to decrypt"
 

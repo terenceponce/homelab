@@ -36,6 +36,8 @@ spec:
               mountPath: /config
             - name: media
               mountPath: /media
+            - name: downloads
+              mountPath: /downloads
           resources:
             requests:
               memory: "256Mi"
@@ -51,3 +53,7 @@ spec:
           hostPath:
             path: /mnt/storage/media
             type: Directory
+        - name: downloads
+          hostPath:
+            path: /mnt/storage/downloads
+            type: DirectoryOrCreate
