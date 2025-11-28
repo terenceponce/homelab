@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: postgres
   namespace: nextcloud
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "PostgreSQL requires write access for data directory and temp files"
+    ignore-check.kube-linter.io/run-as-non-root: "PostgreSQL official image runs as postgres user (UID 999)"
 spec:
   replicas: 1
   selector:

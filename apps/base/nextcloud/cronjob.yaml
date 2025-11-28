@@ -3,6 +3,11 @@ kind: CronJob
 metadata:
   name: nextcloud-backup
   namespace: nextcloud
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Backup job needs write access to create tar archives"
+    ignore-check.kube-linter.io/run-as-non-root: "Backup job needs root to read all Nextcloud files"
+    ignore-check.kube-linter.io/unset-cpu-requirements: "Backup job runs infrequently and doesn't need CPU limits"
+    ignore-check.kube-linter.io/unset-memory-requirements: "Backup job memory usage varies with backup size"
 spec:
   schedule: "0 3 * * *"  # Daily at 3am
   successfulJobsHistoryLimit: 3

@@ -5,6 +5,7 @@ metadata:
   namespace: nextcloud
   annotations:
     ignore-check.kube-linter.io/no-read-only-root-fs: "Nextcloud requires write access to filesystem"
+    ignore-check.kube-linter.io/run-as-non-root: "Nextcloud official image requires running as root for Apache"
 spec:
   replicas: 1
   selector:
@@ -35,6 +36,11 @@ spec:
                   key: password
             - name: REDIS_HOST
               value: redis
+            - name: REDIS_HOST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nextcloud-db
+                  key: redis-password
             - name: NEXTCLOUD_TRUSTED_DOMAINS
               value: "nextcloud.home.local nextcloud.dashfloat.com"
             - name: TRUSTED_PROXIES
