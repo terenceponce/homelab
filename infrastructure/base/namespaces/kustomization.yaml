@@ -4,5 +4,6 @@ resources:
   - adguard-namespace.yaml
   - nextcloud-namespace.yaml
   - plex-namespace.yaml
+  - prowlarr-namespace.yaml
   - qbittorrent-namespace.yaml
   - sonarr-namespace.yaml

@@ -1,9 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - adguard
-  - nextcloud
-  - plex
-  - prowlarr
-  - qbittorrent
-  - sonarr
+  - ../../../base/prowlarr
+patches:
+  - path: patches/ingress.yaml
