@@ -4,5 +4,6 @@ resources:
   - adguard-pvc.yaml
   - nextcloud-pvc.yaml
   - plex-pvc.yaml
+  - prowlarr-pvc.yaml
   - qbittorrent-pvc.yaml
   - sonarr-pvc.yaml

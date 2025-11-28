@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+  namespace: prowlarr
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Prowlarr requires write access for config and database"
+    ignore-check.kube-linter.io/run-as-non-root: "LinuxServer.io image requires specific UID/GID"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prowlarr
+  template:
+    metadata:
+      labels:
+        app: prowlarr
+    spec:
+      containers:
+        - name: prowlarr
+          image: lscr.io/linuxserver/prowlarr:1.26.2
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "Asia/Manila"
+          ports:
+            - containerPort: 9696
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr-config
