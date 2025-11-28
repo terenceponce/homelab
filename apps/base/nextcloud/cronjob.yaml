@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: nextcloud-backup
+  namespace: nextcloud
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Backup job needs write access to create tar archives"
+    ignore-check.kube-linter.io/run-as-non-root: "Backup job needs root to read all Nextcloud files"
+    ignore-check.kube-linter.io/unset-cpu-requirements: "Backup job runs infrequently and doesn't need CPU limits"
+    ignore-check.kube-linter.io/unset-memory-requirements: "Backup job memory usage varies with backup size"
+spec:
+  schedule: "0 3 * * *"  # Daily at 3am
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: alpine:3.19
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  apk add --no-cache tar gzip
+                  BACKUP_DIR="/backup"
+                  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+                  BACKUP_FILE="$BACKUP_DIR/nextcloud-$TIMESTAMP.tar.gz"
+                  
+                  # Create backup directory if it doesn't exist
+                  mkdir -p "$BACKUP_DIR"
+                  
+                  # Create backup (excluding data files to save space, keep config/database only)
+                  tar -czf "$BACKUP_FILE" -C /var/www/html config
+                  
+                  # Keep only last 7 days of backups
+                  find "$BACKUP_DIR" -name "nextcloud-*.tar.gz" -mtime +7 -delete
+                  
+                  # Create a 'latest' symlink
+                  ln -sf "$BACKUP_FILE" "$BACKUP_DIR/latest.tar.gz"
+                  
+                  echo "Backup completed: $BACKUP_FILE"
+              volumeMounts:
+                - name: nextcloud-data
+                  mountPath: /var/www/html
+                - name: backup
+                  mountPath: /backup
+          volumes:
+            - name: nextcloud-data
+              persistentVolumeClaim:
+                claimName: nextcloud-data
+            - name: backup
+              hostPath:
+                path: /mnt/storage/backups/nextcloud
+                type: DirectoryOrCreate
