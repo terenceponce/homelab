@@ -47,12 +47,16 @@ spec:
               value: "10.0.0.0/8"
             - name: OVERWRITEPROTOCOL
               value: "http"
+            - name: NEXTCLOUD_DATA_DIR
+              value: "/mnt/storage/nextcloud"
           ports:
             - containerPort: 80
               name: http
           volumeMounts:
             - name: nextcloud-data
               mountPath: /var/www/html
+            - name: nextcloud-user-data
+              mountPath: /mnt/storage/nextcloud
           resources:
             requests:
               memory: "512Mi"
@@ -84,3 +88,7 @@ spec:
         - name: nextcloud-data
           persistentVolumeClaim:
             claimName: nextcloud-data
+        - name: nextcloud-user-data
+          hostPath:
+            path: /mnt/storage/nextcloud
+            type: DirectoryOrCreate
