@@ -203,6 +203,7 @@ App configs are backed up daily at 3am to `/mnt/storage/backups/`. Last 7 days a
 kubectl get cronjobs -A
 ls -la /mnt/storage/backups/sonarr/
 ls -la /mnt/storage/backups/qbittorrent/
+ls -la /mnt/storage/backups/nextcloud/
 ```
 
 ### Manually trigger a backup
