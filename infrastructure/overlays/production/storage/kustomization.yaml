@@ -7,4 +7,5 @@ resources:
   - plex-pvc.yaml
   - prowlarr-pvc.yaml
   - qbittorrent-pvc.yaml
+  - radarr-pvc.yaml
   - sonarr-pvc.yaml
