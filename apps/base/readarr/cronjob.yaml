@@ -1,8 +1,8 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: bookshelf-backup
-  namespace: bookshelf
+  name: readarr-backup
+  namespace: readarr
 spec:
   schedule: "0 3 * * *"  # Daily at 3am
   concurrencyPolicy: Forbid
@@ -35,20 +35,20 @@ spec:
                 - |
                   set -e
                   TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-                  BACKUP_DIR=/backups/bookshelf
+                  BACKUP_DIR=/backups/readarr
                   
                   mkdir -p $BACKUP_DIR
                   
                   # Create timestamped backup
-                  tar -czf $BACKUP_DIR/bookshelf-$TIMESTAMP.tar.gz -C /config .
+                  tar -czf $BACKUP_DIR/readarr-$TIMESTAMP.tar.gz -C /config .
                   
                   # Update latest symlink
-                  ln -sf bookshelf-$TIMESTAMP.tar.gz $BACKUP_DIR/latest.tar.gz
+                  ln -sf readarr-$TIMESTAMP.tar.gz $BACKUP_DIR/latest.tar.gz
                   
                   # Keep only last 7 backups
-                  ls -t $BACKUP_DIR/bookshelf-*.tar.gz | tail -n +8 | xargs -r rm
+                  ls -t $BACKUP_DIR/readarr-*.tar.gz | tail -n +8 | xargs -r rm
                   
-                  echo "Backup completed: bookshelf-$TIMESTAMP.tar.gz"
+                  echo "Backup completed: readarr-$TIMESTAMP.tar.gz"
               volumeMounts:
                 - name: config
                   mountPath: /config
@@ -58,7 +58,7 @@ spec:
           volumes:
             - name: config
               persistentVolumeClaim:
-                claimName: bookshelf-config
+                claimName: readarr-config
             - name: backups
               hostPath:
                 path: /mnt/storage/backups

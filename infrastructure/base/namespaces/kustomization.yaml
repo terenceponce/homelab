@@ -3,11 +3,11 @@ kind: Kustomization
 resources:
   - adguard-namespace.yaml
   - bazarr-namespace.yaml
-  - bookshelf-namespace.yaml
   - flaresolverr-namespace.yaml
   - nextcloud-namespace.yaml
   - plex-namespace.yaml
   - prowlarr-namespace.yaml
   - qbittorrent-namespace.yaml
   - radarr-namespace.yaml
+  - readarr-namespace.yaml
   - sonarr-namespace.yaml
