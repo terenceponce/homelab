@@ -1,0 +1,65 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: bazarr-backup
+  namespace: bazarr
+spec:
+  schedule: "0 3 * * *"  # Daily at 3am
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+          containers:
+            - name: backup
+              image: busybox:1.37
+              securityContext:
+                readOnlyRootFilesystem: true
+              resources:
+                requests:
+                  cpu: 10m
+                  memory: 32Mi
+                limits:
+                  cpu: 100m
+                  memory: 64Mi
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+                  BACKUP_DIR=/backups/bazarr
+                  
+                  mkdir -p $BACKUP_DIR
+                  
+                  # Create timestamped backup
+                  tar -czf $BACKUP_DIR/bazarr-$TIMESTAMP.tar.gz -C /config .
+                  
+                  # Update latest symlink
+                  ln -sf bazarr-$TIMESTAMP.tar.gz $BACKUP_DIR/latest.tar.gz
+                  
+                  # Keep only last 7 backups
+                  ls -t $BACKUP_DIR/bazarr-*.tar.gz | tail -n +8 | xargs -r rm
+                  
+                  echo "Backup completed: bazarr-$TIMESTAMP.tar.gz"
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+                - name: backups
+                  mountPath: /backups
+          volumes:
+            - name: config
+              persistentVolumeClaim:
+                claimName: bazarr-config
+            - name: backups
+              hostPath:
+                path: /mnt/storage/backups
+                type: DirectoryOrCreate
