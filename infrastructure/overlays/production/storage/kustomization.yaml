@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - adguard-pvc.yaml
   - bazarr-pvc.yaml
+  - bookshelf-pvc.yaml
   - nextcloud-pvc.yaml
   - plex-pvc.yaml
   - prowlarr-pvc.yaml
