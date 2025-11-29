@@ -1,25 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bookshelf
-  namespace: bookshelf
+  name: readarr
+  namespace: readarr
   annotations:
-    ignore-check.kube-linter.io/run-as-non-root: "Bookshelf image requires root to start"
-    ignore-check.kube-linter.io/no-read-only-root-fs: "Bookshelf requires write access to filesystem"
+    ignore-check.kube-linter.io/run-as-non-root: "Readarr image requires root to start"
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Readarr requires write access to filesystem"
 spec:
   replicas: 1
   strategy:
     type: Recreate
   selector:
     matchLabels:
-      app: bookshelf
+      app: readarr
   template:
     metadata:
       labels:
-        app: bookshelf
+        app: readarr
     spec:
       containers:
-        - name: bookshelf
+        - name: readarr
           image: ghcr.io/pennydreadful/bookshelf:hardcover
           env:
             - name: TZ
@@ -48,7 +48,7 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: bookshelf-config
+            claimName: readarr-config
         - name: books
           hostPath:
             path: /mnt/storage/media/books

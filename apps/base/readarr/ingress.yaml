@@ -1,17 +1,17 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: bookshelf
-  namespace: bookshelf
+  name: readarr
+  namespace: readarr
 spec:
   rules:
-    - host: bookshelf.home.local
+    - host: readarr.home.local
       http:
         paths:
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: bookshelf
+                name: readarr
                 port:
                   number: 8787
