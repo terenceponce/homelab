@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - adguard-namespace.yaml
   - bazarr-namespace.yaml
+  - bookshelf-namespace.yaml
   - flaresolverr-namespace.yaml
   - nextcloud-namespace.yaml
   - plex-namespace.yaml

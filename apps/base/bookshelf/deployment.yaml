@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bookshelf
+  namespace: bookshelf
+  annotations:
+    ignore-check.kube-linter.io/run-as-non-root: "Bookshelf image requires root to start"
+    ignore-check.kube-linter.io/no-read-only-root-fs: "Bookshelf requires write access to filesystem"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: bookshelf
+  template:
+    metadata:
+      labels:
+        app: bookshelf
+    spec:
+      containers:
+        - name: bookshelf
+          image: ghcr.io/pennydreadful/bookshelf:hardcover
+          env:
+            - name: TZ
+              value: "Asia/Manila"
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+          ports:
+            - containerPort: 8787
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: books
+              mountPath: /books
+            - name: downloads
+              mountPath: /downloads
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: bookshelf-config
+        - name: books
+          hostPath:
+            path: /mnt/storage/media/books
+            type: DirectoryOrCreate
+        - name: downloads
+          hostPath:
+            path: /mnt/storage/downloads
+            type: DirectoryOrCreate

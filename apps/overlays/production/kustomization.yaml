@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - adguard
   - bazarr
+  - bookshelf
   - flaresolverr
   - nextcloud
   - plex
