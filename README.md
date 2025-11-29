@@ -202,6 +202,7 @@ App configs are backed up daily at 3am to `/mnt/storage/backups/`. Last 7 days a
 ```bash
 kubectl get cronjobs -A
 ls -la /mnt/storage/backups/bazarr/
+ls -la /mnt/storage/backups/radarr/
 ls -la /mnt/storage/backups/sonarr/
 ls -la /mnt/storage/backups/prowlarr/
 ls -la /mnt/storage/backups/qbittorrent/
@@ -212,6 +213,7 @@ ls -la /mnt/storage/backups/nextcloud/
 
 ```bash
 kubectl create job --from=cronjob/bazarr-backup bazarr-backup-manual -n bazarr
+kubectl create job --from=cronjob/radarr-backup radarr-backup-manual -n radarr
 kubectl create job --from=cronjob/sonarr-backup sonarr-backup-manual -n sonarr
 kubectl create job --from=cronjob/prowlarr-backup prowlarr-backup-manual -n prowlarr
 ```
