@@ -4,6 +4,7 @@ resources:
   - adguard-namespace.yaml
   - bazarr-namespace.yaml
   - flaresolverr-namespace.yaml
+  - immich-namespace.yaml
   - nextcloud-namespace.yaml
   - plex-namespace.yaml
   - prowlarr-namespace.yaml
