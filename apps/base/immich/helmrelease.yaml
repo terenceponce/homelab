@@ -26,8 +26,23 @@ spec:
         library:
           existingClaim: ""
           storageClass: local-path
+          size: 100Gi
+    
+    server:
+      persistence:
+        library:
+          existingClaim: ""
+          storageClass: local-path
           accessMode: ReadWriteOnce
           size: 100Gi
+      ingress:
+        main:
+          enabled: true
+          hosts:
+            - host: immich.home.local
+              paths:
+                - path: /
+                  pathType: Prefix
     
     postgresql:
       enabled: true
@@ -49,16 +64,6 @@ spec:
       master:
         persistence:
           enabled: false
-    
-    server:
-      ingress:
-        main:
-          enabled: true
-          hosts:
-            - host: immich.home.local
-              paths:
-                - path: /
-                  pathType: Prefix
     
     machine-learning:
       enabled: true
