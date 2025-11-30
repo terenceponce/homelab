@@ -4,6 +4,7 @@ resources:
   - adguard-pvc.yaml
   - bazarr-pvc.yaml
   - immich-pvc.yaml
+  - immich-postgres-pvc.yaml
   - nextcloud-pvc.yaml
   - plex-pvc.yaml
   - prowlarr-pvc.yaml

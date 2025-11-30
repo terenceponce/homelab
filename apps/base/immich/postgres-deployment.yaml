@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: immich
+  annotations:
+    ignore-check.kube-linter.io/no-read-only-root-fs: "PostgreSQL requires write access for data directory and temp files"
+    ignore-check.kube-linter.io/run-as-non-root: "PostgreSQL official image runs as postgres user (UID 999)"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: tensorchord/pgvecto-rs:pg14-v0.2.0
+          env:
+            - name: POSTGRES_DB
+              value: immich
+            - name: POSTGRES_USER
+              value: immich
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-db
+                  key: password
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+              name: postgres
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: immich-postgres-data

@@ -3,3 +3,5 @@ kind: Kustomization
 resources:
   - helmrepository.yaml
   - helmrelease.yaml
+  - postgres-deployment.yaml
+  - postgres-service.yaml
