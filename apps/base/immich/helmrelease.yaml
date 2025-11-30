@@ -44,14 +44,8 @@ spec:
                 - path: /
                   pathType: Prefix
     
-    # Use external PostgreSQL with pgvector
-    postgresql:
-      enabled: false
-    
-    # Use Valkey instead of Redis
-    redis:
-      enabled: false
-    
+    # Using external PostgreSQL with pgvector (tensorchord/pgvecto-rs:pg14)
+    # Using Valkey instead of Redis (chart v0.10.0+ requirement)
     valkey:
       enabled: true
       architecture: standalone
