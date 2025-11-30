@@ -1,0 +1,69 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: immich
+  namespace: immich
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: immich
+      version: '>=0.7.0 <1.0.0'
+      sourceRef:
+        kind: HelmRepository
+        name: immich
+        namespace: immich
+      interval: 12h
+  values:
+    env:
+      TZ: Asia/Manila
+    
+    image:
+      tag: v1.122.3  # Pin to specific version
+    
+    immich:
+      persistence:
+        library:
+          existingClaim: ""
+          storageClass: local-path
+          accessMode: ReadWriteOnce
+          size: 100Gi
+    
+    postgresql:
+      enabled: true
+      global:
+        postgresql:
+          auth:
+            username: immich
+            database: immich
+      primary:
+        persistence:
+          storageClass: local-path
+          size: 10Gi
+    
+    redis:
+      enabled: true
+      architecture: standalone
+      auth:
+        enabled: false
+      master:
+        persistence:
+          enabled: false
+    
+    server:
+      ingress:
+        main:
+          enabled: true
+          hosts:
+            - host: immich.home.local
+              paths:
+                - path: /
+                  pathType: Prefix
+    
+    machine-learning:
+      enabled: true
+      persistence:
+        cache:
+          enabled: true
+          size: 10Gi
+          storageClass: local-path

@@ -4,6 +4,7 @@ resources:
   - adguard
   - bazarr
   - flaresolverr
+  - immich
   - nextcloud
   - plex
   - prowlarr
