@@ -24,17 +24,9 @@ spec:
     immich:
       persistence:
         library:
-          existingClaim: ""
-          storageClass: local-path
-          size: 100Gi
+          existingClaim: immich-library
     
     server:
-      persistence:
-        library:
-          existingClaim: ""
-          storageClass: local-path
-          accessMode: ReadWriteOnce
-          size: 100Gi
       ingress:
         main:
           enabled: true
@@ -71,4 +63,4 @@ spec:
         cache:
           enabled: true
           size: 10Gi
-          storageClass: local-path
+          type: emptyDir
