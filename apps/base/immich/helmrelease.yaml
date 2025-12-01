@@ -41,6 +41,14 @@ spec:
                     secretKeyRef:
                       name: immich-db
                       key: password
+      persistence:
+        nextcloud-photos:
+          enabled: true
+          type: persistentVolumeClaim
+          existingClaim: nextcloud-photos-readonly
+          globalMounts:
+            - path: /nextcloud
+              readOnly: true
       ingress:
         main:
           enabled: true
