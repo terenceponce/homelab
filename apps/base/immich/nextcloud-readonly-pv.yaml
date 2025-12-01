@@ -4,12 +4,12 @@ metadata:
   name: nextcloud-photos-readonly
 spec:
   capacity:
-    storage: 50Gi
+    storage: 500Gi
   accessModes:
     - ReadWriteMany
   storageClassName: ""
   hostPath:
-    path: /var/lib/rancher/k3s/storage/pvc-193976f3-807a-44b2-b8b4-01ef79db8944_nextcloud_nextcloud-data
+    path: /mnt/storage/nextcloud
     type: Directory
   claimRef:
     namespace: immich
@@ -27,4 +27,4 @@ spec:
   volumeName: nextcloud-photos-readonly
   resources:
     requests:
-      storage: 50Gi
+      storage: 500Gi
