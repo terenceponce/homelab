@@ -45,10 +45,10 @@ spec:
         nextcloud-photos:
           enabled: true
           type: persistentVolumeClaim
-          existingClaim: nextcloud-photos-readonly
+          existingClaim: nextcloud-photos
           globalMounts:
             - path: /nextcloud
-              readOnly: true
+              readOnly: false
       ingress:
         main:
           enabled: true
