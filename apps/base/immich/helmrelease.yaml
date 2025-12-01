@@ -24,7 +24,11 @@ spec:
     immich:
       persistence:
         library:
-          existingClaim: immich-library
+          existingClaim: nextcloud-photos
+          globalMounts:
+            - path: /usr/src/app/upload
+              subPath: admin/files/immich-library
+              readOnly: false
     
     server:
       enabled: true
@@ -41,14 +45,7 @@ spec:
                     secretKeyRef:
                       name: immich-db
                       key: password
-      persistence:
-        nextcloud-photos:
-          enabled: true
-          type: persistentVolumeClaim
-          existingClaim: nextcloud-photos
-          globalMounts:
-            - path: /nextcloud
-              readOnly: false
+
       ingress:
         main:
           enabled: true
