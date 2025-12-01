@@ -5,3 +5,4 @@ resources:
   - helmrelease.yaml
   - postgres-deployment.yaml
   - postgres-service.yaml
+  - nextcloud-readonly-pv.yaml
